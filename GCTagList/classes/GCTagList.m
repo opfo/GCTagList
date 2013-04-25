@@ -7,6 +7,7 @@
 //
 
 #import "GCTagList.h"
+#define UIColorFromRGB(rgbValue) [UIColor colorWithRed:((float)((rgbValue & 0xFF0000) >> 16))/255.0 green:((float)((rgbValue & 0xFF00) >> 8))/255.0 blue:((float)(rgbValue & 0xFF))/255.0 alpha:1.0]
 
 #define LABEL_MARGIN 2.0f 
 #define BOTTOM_MARGIN 5.0f 
@@ -669,8 +670,7 @@
 #pragma mark -
 #pragma mark ===GCTagLabel===
 
-#define DEFAULT_LABEL_BACKGROUND_COLOR [UIColor lightGrayColor]
-#define DEFAULT_LABEL_TEXT_COLOR [UIColor blackColor]
+
 #define LABEL_CORNER_RADIUS 12.f
 #define LABEL_FONT_SIZE 13.f
 #define HORIZONTAL_PADDING 7.0f
@@ -738,7 +738,6 @@ CGFloat imageFontLeftInsetForType(GCTagLabelAccessoryType type) {
 
 - (void)dealloc {
     // public property
-    self.labelBackgroundColor = nil;
     self.labelTextColor = nil;
     
     // private property
@@ -760,11 +759,17 @@ CGFloat imageFontLeftInsetForType(GCTagLabelAccessoryType type) {
         self.selectedEnabled = YES;
         self.privateReuseIdentifier = identifier;
         self.fitSize = CGSizeMake(self.maxWidth, 1500);
-        self.labelTextColor = DEFAULT_LABEL_TEXT_COLOR;
-        self.labelBackgroundColor = DEFAULT_LABEL_BACKGROUND_COLOR;
+        self.labelTextColor = [UIColor blackColor];
+		self.labelSelectedTextColor = [UIColor whiteColor];
+		self.labelStartingGradient = UIColorFromRGB(0xdce6f8);
+		self.labelEndingGradient = UIColorFromRGB(0xbdcff1);
+		self.labelSelectedStartingGradient = UIColorFromRGB(0x4e8fff);
+		self.labelSelectedEndingGradient = UIColorFromRGB(0x325cff);
+		self.labelBorderColor = UIColorFromRGB(0xa3bcea);
+		self.labelSelectedBorderColor = UIColorFromRGB(0x133de1);
         self.gradientLayer = [CAGradientLayer layer];
         self.gradientLayer.cornerRadius = LABEL_CORNER_RADIUS;
-        self.gradientLayer.borderWidth = .8f;
+        self.gradientLayer.borderWidth = 1.f / [UIScreen mainScreen].scale;
         [self.layer insertSublayer:self.gradientLayer atIndex:0];
     }
     return self;
@@ -778,6 +783,7 @@ CGFloat imageFontLeftInsetForType(GCTagLabelAccessoryType type) {
         self.label = GC_AUTORELEASE([[UILabel alloc] init]);
         self.label.textAlignment = 1;
         self.label.textColor = self.labelTextColor;
+		self.label.highlightedTextColor = self.labelSelectedTextColor;
         self.label.backgroundColor = [UIColor clearColor];
         self.label.font = [UIFont fontWithName:@"HelveticaNeue" size:LABEL_FONT_SIZE];
         [self addSubview:self.label];
@@ -809,20 +815,28 @@ CGFloat imageFontLeftInsetForType(GCTagLabelAccessoryType type) {
     if(!self.selectedEnabled) {
         return;
     }
+	
+	self.label.highlighted = selected;
+	
     NSArray* colorsArray = !selected ?
-    [NSArray arrayWithObjects:(id)[[UIColor whiteColor] CGColor], (id)[self.labelBackgroundColor CGColor], nil] :
-    [NSArray arrayWithObjects:(id)[DEFAULT_LABEL_BACKGROUND_COLOR CGColor], (id)[self.labelBackgroundColor CGColor], nil] ;
+    [NSArray arrayWithObjects:(id)[self.labelStartingGradient CGColor], (id)[self.labelEndingGradient CGColor], nil] :
+    [NSArray arrayWithObjects:(id)[self.labelSelectedStartingGradient CGColor], (id)[self.labelSelectedEndingGradient CGColor], nil];
+	
     
     if(!animated) {
         [CATransaction begin];
         [CATransaction setValue:(id)kCFBooleanTrue
                          forKey:kCATransactionDisableActions];
+		self.gradientLayer.borderWidth = !selected ? 1.0f / [UIScreen mainScreen].scale : 1.2f / [UIScreen mainScreen].scale;
         self.gradientLayer.colors = colorsArray;
+		self.gradientLayer.borderColor = !selected ? self.labelBorderColor.CGColor : self.labelSelectedBorderColor.CGColor;
         [CATransaction commit];
     } else {
         [CATransaction begin];
         [CATransaction setAnimationDuration:.3f];
         self.gradientLayer.colors = colorsArray;
+		self.gradientLayer.borderWidth = !selected ? 1.0f / [UIScreen mainScreen].scale : 1.2f / [UIScreen mainScreen].scale;
+		self.gradientLayer.borderColor = !selected ? self.labelBorderColor.CGColor : self.labelSelectedBorderColor.CGColor;
         [CATransaction commit];
     }
 }
@@ -978,8 +992,8 @@ CGFloat imageFontLeftInsetForType(GCTagLabelAccessoryType type) {
     [CATransaction setValue:(id)kCFBooleanTrue
                      forKey:kCATransactionDisableActions];
     self.gradientLayer.frame = self.bounds;
-    self.gradientLayer.colors = [NSArray arrayWithObjects:(id)[[UIColor whiteColor] CGColor], (id)[self.labelBackgroundColor CGColor], nil];
-    self.gradientLayer.borderColor = self.labelBackgroundColor.CGColor;
+    self.gradientLayer.colors = @[(id)self.labelStartingGradient.CGColor, (id)self.labelEndingGradient.CGColor];
+    self.gradientLayer.borderColor = self.labelBorderColor.CGColor;
     [CATransaction commit];
 }
 
