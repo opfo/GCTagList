@@ -736,6 +736,10 @@ CGFloat imageFontLeftInsetForType(GCTagLabelAccessoryType type) {
     return tag;
 }
 
+- (NSString *)getLabelText {
+	return self.label.text;
+}
+
 - (void)dealloc {
     // public property
     self.labelTextColor = nil;

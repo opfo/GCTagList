@@ -207,6 +207,7 @@ extern CGFloat const LabelVerticalPadding;
 @property (assign) BOOL selectedEnabled; // if YES, the taglabel could show selected state. default is YES.
 @property (readonly) BOOL selected;
 @property (assign) CGSize fitSize;
+@property (readonly, getter = getLabelText) NSString *text;
 
 /**
  * let the maxWidth equal to the taglist's width,
